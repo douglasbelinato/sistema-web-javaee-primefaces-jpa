@@ -3,8 +3,8 @@
 /src/.recommenders
 /src/RemoteSystemsTempFiles
 /src/Servers
-/src/brewer/target
-/src/brewer/.settings
+/src/PedidoVenda/target
+/src/PedidoVenda/.settings
 *.classpath
 *.project
 *.tern-project
