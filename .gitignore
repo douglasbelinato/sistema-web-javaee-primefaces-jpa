@@ -5,6 +5,8 @@
 /src/Servers
 /src/PedidoVenda/target
 /src/PedidoVenda/.settings
+/src/simple-mail/target
+/src/simple-mail/.settings
 *.classpath
 *.project
 *.tern-project
