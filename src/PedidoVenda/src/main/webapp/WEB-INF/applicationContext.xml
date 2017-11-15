@@ -1,0 +1,69 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+    
+    <beans:bean id="appUserDetailsService" class="com.algaworks.pedidovenda.security.AppUserDetailsService" />
+    
+    <!-- Inicio - Aula 15.7. Resolvendo o problema com requisição Ajax -->
+	    <beans:bean id="exceptionTranslationFilter" class="org.springframework.security.web.access.ExceptionTranslationFilter">
+		    <beans:property name="accessDeniedHandler" ref="jsfAccessDeniedHandler"/>
+		    <beans:property name="authenticationEntryPoint" ref="authenticationEntryPoint"/>
+		</beans:bean>
+		
+		<beans:bean id="jsfAccessDeniedHandler" class="com.algaworks.pedidovenda.security.JsfAccessDeniedHandler">
+		    <beans:property name="loginPath" value="/AcessoNegado.xhtml" />
+		    <beans:property name="contextRelative" value="true" />
+		</beans:bean>
+		
+		<beans:bean id="authenticationEntryPoint" class="com.algaworks.pedidovenda.security.JsfLoginUrlAuthenticationEntryPoint">
+		    <beans:property name="loginFormUrl" value="/Login.xhtml"/>
+		    <beans:property name="redirectStrategy" ref="jsfRedirectStrategy" />
+		</beans:bean>
+		
+		<beans:bean id="jsfRedirectStrategy" class="com.algaworks.pedidovenda.security.JsfRedirectStrategy"/>
+    <!-- Fim - Aula 15.7. Resolvendo o problema com requisição Ajax -->
+    
+    <http pattern="/Login.xhtml" security="none" />
+    <http pattern="/Erro.xhtml" security="none" />   
+    <!-- Não faz a segurança dos recursos (imagens, css, js...) gerado pelo resource do projeto -->
+    <http pattern="/javax.faces.resource/**" security="none" />
+    
+	<http auto-config="false" use-expressions="true">
+		<!-- Inicio - Aula 15.7. Resolvendo o problema com requisição Ajax -->
+		<custom-filter ref="exceptionTranslationFilter" before="FILTER_SECURITY_INTERCEPTOR" />
+		<!-- Fim - Aula 15.7. Resolvendo o problema com requisição Ajax -->
+	
+		<intercept-url pattern="/Home.xhtml" access="isAuthenticated()" />
+		<intercept-url pattern="/AcessoNegado.xhtml" access="isAuthenticated()" />
+		<intercept-url pattern="/pedidos/**" access="hasAnyRole('VENDEDORES', 'AUXILIARES', 'ADMINISTRADORES')" />
+		<intercept-url pattern="/usuarios/**" access="hasAnyRole('ADMINISTRADORES')" />
+		<intercept-url pattern="/clientes/**" access="hasAnyRole('VENDEDORES', 'AUXILIARES', 'ADMINISTRADORES')" />		
+		<intercept-url pattern="/produtos/**" access="hasAnyRole('ADMINISTRADORES')" />
+		<intercept-url pattern="/**" access="denyAll" />
+		
+		<form-login login-page="/Login.xhtml" authentication-failure-url="/Login.xhtml?invalid=true" default-target-url="/" always-use-default-target="true"/>
+		<logout logout-url="/j_spring_security_logout" invalidate-session="true"/>
+	</http>
+	
+	<authentication-manager>
+		<!-- Authentication provider customizado -->
+		<authentication-provider user-service-ref="appUserDetailsService">
+			<!-- <password-encoder hash="md5"/> --> <!-- Usar quando a senha for criptografada -->
+		</authentication-provider>
+		
+		<!-- Authentication provider com users e roles fixos -->
+		<!-- 
+		<authentication-provider>
+			<user-service>
+				<user name="joao" password="joao" authorities="VENDEDORES" />
+				<user name="manoel" password="manoel" authorities="ADMINISTRADORES" />
+			</user-service>
+		</authentication-provider>
+		 -->
+	</authentication-manager>
+           
+</beans:beans>

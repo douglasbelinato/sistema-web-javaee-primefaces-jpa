@@ -1,0 +1,112 @@
+<ui:composition template="/WEB-INF/template/LayoutPadrao.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<ui:define name="titulo">#{cadastroUsuarioBean.editando ? 'Editar Usuário' : 'Novo Usuário'}</ui:define>
+	
+	<ui:define name="corpo">
+		<f:metadata>
+			<!-- 
+			f:viewParam ==> Usado apenas como workaround para um bug do primefaces, 
+			que faz com que o método inicializar() seja chamado muitas vezes.
+			(Aula 12.3. Listener preRenderView chamado muitas vezes)
+			 -->
+			<f:viewParam name="usuario" value="#{cadastroUsuarioBean.usuario}"/>
+			<f:event listener="#{cadastroUsuarioBean.inicializar}" type="preRenderView"/>
+		</f:metadata>
+		
+		<h:form id="frmCadastroUsuario">
+			<h1>#{cadastroUsuarioBean.editando ? 'Editar Usuário' : 'Novo Usuário'}</h1>
+			
+			<p:messages autoUpdate="true" closable="true"/>		
+			<p:toolbar style="margin-top: 20px">
+				<f:facet name="left">
+					<p:button value="Novo" outcome="/usuarios/CadastroUsuario" />
+					<p:commandButton id="botaoSalvar" value="Salvar" action="#{cadastroUsuarioBean.salvar}" 
+									 update="@form"/>
+				</f:facet>
+				
+				<f:facet name="right">
+					<p:button value="Pesquisa" outcome="/usuarios/PesquisaUsuarios"/>				
+				</f:facet>
+			</p:toolbar>
+			
+			<h:panelGrid columns="2" id="painel" style="width: 100%; margin-top: 20px" columnClasses="rotulo, campo" 
+						 styleClass="ui-panelgrid">		
+				
+				<p:outputLabel value="Nome" for="nome"/>
+				<p:inputText id="nome" size="60" maxlength="80" value="#{cadastroUsuarioBean.usuario.nome}"/>
+				
+				<p:outputLabel value="E-mail" for="email"/>
+				<p:inputText id="email" size="40" maxlength="80" value="#{cadastroUsuarioBean.usuario.email}"/>
+				
+				<p:outputLabel value="Senha" for="senha"/>
+				<p:password id="senha" size="20" value="#{cadastroUsuarioBean.usuario.senha}" redisplay="true"/>
+				
+			</h:panelGrid>		
+			
+			<h:panelGrid columns="2" id="panelGroups" style="width: 100%; margin-top: 20px" columnClasses="rotulo, campo"
+						 styleClass="ui-panelgrid">
+				<p:selectOneMenu widgetVar="grupo" id="grupo" value="#{cadastroUsuarioBean.grupoSelecionado}" 
+								 onchange="enableBtnAddGrupo(); return false;">
+					<f:selectItem itemLabel="Selecione o grupo" itemValue=""/>
+					<f:selectItems value="#{cadastroUsuarioBean.grupos}" var="grupo" 
+								   itemLabel="#{grupo.nome}" itemValue="#{grupo}"/>
+				</p:selectOneMenu>
+				<p:commandButton id="btnAddGrupo" widgetVar="btnAddGrupo" value="Adicionar grupo" 
+							 	 action="#{cadastroUsuarioBean.adicionarGrupo}" 
+								 update=":frmCadastroUsuario:gruposTable :frmCadastroUsuario:grupo"
+								 process="@this grupo" disabled="#{empty cadastroUsuarioBean.grupoSelecionado}"
+								 oncomplete="enableBtnAddGrupo(); return false;"/>
+			</h:panelGrid>
+			
+			<p:dataTable id="gruposTable" value="#{cadastroUsuarioBean.usuario.grupos}" var="grupo" rows="10"
+						 style="margin-top: 20px" emptyMessage="Nenhum grupo encontrado"
+						 paginator="true" paginatorAlwaysVisible="false" paginatorPosition="bottom">
+				
+				<p:column headerText="Grupo" style="text-align: left; width: 95%">
+					<h:outputText value="#{grupo.nome}" />
+				</p:column>
+				<p:column>
+					<p:commandButton icon="ui-icon-trash" title="Excluir" 
+									 oncomplete="PF('removerGrupoConfirmDialog').show(); return false;"
+									 process="@this">
+						<f:setPropertyActionListener value="#{grupo}" target="#{cadastroUsuarioBean.grupoSelecionado}" />
+					</p:commandButton>
+				</p:column>					
+			</p:dataTable>
+			
+			<p:confirmDialog widgetVar="removerGrupoConfirmDialog"
+							 header="Exclusão de grupo"
+							 message="Tem certeza que deseja excluir o grupo?">
+					<p:commandButton value="Sim" oncomplete="PF('removerGrupoConfirmDialog').hide(); return false;"
+									 action="#{cadastroUsuarioBean.removerGrupo}"
+									 update=":frmCadastroUsuario:gruposTable :frmCadastroUsuario:grupo"
+									 process="@this"/>
+					<p:button value="Não" onclick="PF('removerGrupoConfirmDialog').hide(); return false;"/>
+				</p:confirmDialog>
+		</h:form>
+		
+		<script type="text/javascript">
+			//<![CDATA[
+			function enableBtnAddGrupo() {
+				// Consigo pegar o valor dessa forma usando o widgetVar no selectOneMenu
+				var selectedValue = PF('grupo').getSelectedValue();
+				
+				if (selectedValue != "") {
+					$('#frmCadastroUsuario\\:btnAddGrupo').removeAttr('disabled');
+					$('#frmCadastroUsuario\\:btnAddGrupo').removeClass('ui-state-disabled');
+				} else {
+					$("#frmCadastroUsuario\\:btnAddGrupo").attr('disabled', 'enabled');
+					$('#frmCadastroUsuario\\:btnAddGrupo').addClass('ui-state-disabled');										
+				}
+			}
+			//]]>
+		</script>
+		
+	</ui:define>
+	
+</ui:composition>
